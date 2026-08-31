@@ -1,0 +1,862 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Gia Sư AI · Lớp 8</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#f4f5fb; --panel:#ffffff; --ink:#1c1f33; --sub:#6b7086; --line:#e7e8f2;
+    --c-qna:#6C5CE7; --c-qna-bg:#f0edfe;
+    --c-math:#2E86FF; --c-math-bg:#eaf3ff;
+    --c-chem:#12B886; --c-chem-bg:#e6faf4;
+    --c-eng:#FF9F43; --c-eng-bg:#fff3e6;
+    --c-quiz:#FF5C8A; --c-quiz-bg:#ffeaf0;
+    --c-practice:#17A2B8; --c-practice-bg:#e6f7fa;
+    --c-progress:#F0A500; --c-progress-bg:#fff6e0;
+    --radius:18px;
+    --shadow:0 6px 20px rgba(30,30,60,0.06);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;height:100%;background:var(--bg);color:var(--ink);font-family:'Inter',sans-serif;}
+  h1,h2,h3,.brand,.nav-item span.label,.q-title{font-family:'Baloo 2',sans-serif;}
+  #app{display:flex; height:100vh; overflow:hidden;}
+
+  /* ---------- SIDEBAR ---------- */
+  #sidebar{width:246px; flex-shrink:0; background:var(--panel); border-right:1px solid var(--line); display:flex; flex-direction:column; padding:22px 16px;}
+  .brand{display:flex; align-items:center; gap:10px; font-size:20px; font-weight:800; color:var(--ink); padding:4px 8px 20px;}
+  .brand .logo{width:38px;height:38px;border-radius:12px;background:linear-gradient(135deg,#6C5CE7,#2E86FF);display:flex;align-items:center;justify-content:center;font-size:19px;}
+  .side-student{background:linear-gradient(135deg,#6C5CE7,#8B7CF7); color:#fff; border-radius:16px; padding:14px 16px; margin-bottom:18px;}
+  .side-student .hi{font-size:12px; opacity:0.85; letter-spacing:0.5px;}
+  .side-student .name{font-family:'Baloo 2',sans-serif; font-size:18px; font-weight:700; margin-top:2px;}
+  .side-student .streak{margin-top:8px; font-size:12px; background:rgba(255,255,255,0.18); display:inline-block; padding:4px 10px; border-radius:20px;}
+  nav{display:flex; flex-direction:column; gap:4px; flex:1;}
+  .nav-item{display:flex; align-items:center; gap:12px; padding:11px 14px; border-radius:12px; cursor:pointer; color:var(--sub); font-weight:600; font-size:14px; transition:background 0.15s, color 0.15s;}
+  .nav-item .ico{width:26px; text-align:center; font-size:17px;}
+  .nav-item:hover{background:#f2f1fd; color:var(--ink);}
+  .nav-item.active{background:var(--ink); color:#fff;}
+  .side-footer{font-size:11px; color:var(--sub); text-align:center; padding-top:10px;}
+
+  /* ---------- CONTENT ---------- */
+  #content{flex:1; overflow-y:auto; padding:30px 40px 60px;}
+  .view{display:none; max-width:880px; margin:0 auto;}
+  .view.active{display:block; animation:fadeIn 0.25s ease;}
+  @keyframes fadeIn{from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:translateY(0);}}
+  .view-head{margin-bottom:22px;}
+  .view-head h1{font-size:26px; margin:0 0 4px; display:flex; align-items:center; gap:10px;}
+  .view-head p{margin:0; color:var(--sub); font-size:14px;}
+  .badge-ico{width:42px;height:42px;border-radius:13px;display:inline-flex;align-items:center;justify-content:center;font-size:21px;}
+
+  .card{background:var(--panel); border-radius:var(--radius); box-shadow:var(--shadow); padding:22px; margin-bottom:18px;}
+  textarea, input[type=text], select, input[type=number]{
+    width:100%; border:1.5px solid var(--line); border-radius:12px; padding:12px 14px; font-family:'Inter',sans-serif; font-size:14.5px; color:var(--ink); background:#fbfbfe; outline:none; transition:border-color 0.15s;
+  }
+  textarea:focus, input:focus, select:focus{border-color:var(--c-qna);}
+  textarea{min-height:100px; resize:vertical; line-height:1.55;}
+  label.field-label{display:block; font-size:12.5px; font-weight:700; color:var(--sub); letter-spacing:0.3px; margin-bottom:6px; text-transform:uppercase;}
+  .row{display:flex; gap:14px; flex-wrap:wrap;}
+  .row > div{flex:1; min-width:140px;}
+
+  .btn{border:none; border-radius:12px; padding:13px 22px; font-family:'Baloo 2',sans-serif; font-weight:700; font-size:14.5px; cursor:pointer; color:#fff; display:inline-flex; align-items:center; gap:8px; transition:filter 0.15s, transform 0.1s;}
+  .btn:hover{filter:brightness(1.06);}
+  .btn:active{transform:scale(0.98);}
+  .btn:disabled{opacity:0.55; cursor:not-allowed;}
+  .btn-ghost{background:#f1f1f7; color:var(--ink);}
+  .btn-block{width:100%; justify-content:center;}
+
+  .spinner{width:15px;height:15px;border-radius:50%;border:2.5px solid rgba(255,255,255,0.4);border-top-color:#fff;animation:spin 0.7s linear infinite;}
+  @keyframes spin{to{transform:rotate(360deg);}}
+
+  .error-banner{background:#fff0f0; color:#c0392b; border:1px solid #ffd2d2; border-radius:12px; padding:12px 16px; font-size:13.5px; margin-top:14px;}
+
+  .result-box{margin-top:18px; border-radius:16px; padding:18px 20px; font-size:14.5px; line-height:1.75;}
+  .result-box p{margin:0 0 10px;}
+  .result-box ul, .result-box ol{margin:6px 0 10px 20px; padding:0;}
+  .result-box li{margin-bottom:4px;}
+
+  .step-list{list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:10px;}
+  .step-item{display:flex; gap:12px; align-items:flex-start; background:#fbfbfe; border-radius:12px; padding:12px 14px; border-left:4px solid var(--c-math);}
+  .step-item .num{font-family:'Baloo 2',sans-serif; font-weight:800; font-size:13px; color:var(--c-math); flex-shrink:0; width:24px; height:24px; border-radius:50%; background:var(--c-math-bg); display:flex; align-items:center; justify-content:center;}
+  .final-answer{margin-top:14px; padding:14px 18px; border-radius:12px; font-weight:700; font-size:15px;}
+
+  .action-row{display:flex; gap:10px; margin-top:16px; flex-wrap:wrap;}
+  .action-row .btn{font-size:13px; padding:10px 16px;}
+
+  .seg{display:flex; background:#f1f1f7; border-radius:12px; padding:4px; gap:4px; margin-bottom:16px;}
+  .seg-btn{flex:1; text-align:center; padding:9px; border-radius:9px; font-weight:700; font-size:13px; cursor:pointer; color:var(--sub);}
+  .seg-btn.active{background:#fff; color:var(--ink); box-shadow:0 2px 6px rgba(0,0,0,0.08);}
+
+  .q-card{background:#fbfbfe; border-radius:14px; padding:16px 18px; margin-bottom:14px; border:1.5px solid var(--line);}
+  .q-title{font-weight:700; font-size:14.5px; margin-bottom:10px;}
+  .opt{display:flex; align-items:center; gap:10px; padding:9px 12px; border-radius:10px; margin-bottom:6px; cursor:pointer; border:1.5px solid var(--line); font-size:14px;}
+  .opt:hover{border-color:var(--c-quiz);}
+  .opt input{accent-color:var(--c-quiz);}
+  .opt.correct{border-color:#12B886; background:#e6faf4;}
+  .opt.wrong{border-color:#e74c3c; background:#fff0f0;}
+  .q-explain{margin-top:10px; font-size:13px; color:var(--sub); background:#f7f7fb; border-radius:10px; padding:10px 12px; display:none;}
+
+  .stat-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin-bottom:18px;}
+  .stat-card{background:var(--panel); border-radius:16px; box-shadow:var(--shadow); padding:18px; text-align:center;}
+  .stat-card .val{font-family:'Baloo 2',sans-serif; font-size:26px; font-weight:800;}
+  .stat-card .lbl{font-size:12px; color:var(--sub); margin-top:4px;}
+  .subj-bar-row{margin-bottom:14px;}
+  .subj-bar-row .top{display:flex; justify-content:space-between; font-size:13px; font-weight:600; margin-bottom:6px;}
+  .subj-bar-bg{height:10px; border-radius:6px; background:#eef0f7; overflow:hidden;}
+  .subj-bar-fill{height:100%; border-radius:6px; transition:width 0.4s ease;}
+  .hist-row{display:flex; gap:6px; flex-wrap:wrap; margin-top:8px;}
+  .hist-dot{width:16px;height:16px;border-radius:5px;}
+
+  .practice-feedback{margin-top:14px; padding:14px 16px; border-radius:12px; font-size:14px;}
+  .practice-score{font-size:13px; color:var(--sub); margin-top:10px;}
+
+  /* modal */
+  #onboard-modal{position:fixed; inset:0; background:rgba(20,20,35,0.55); display:none; align-items:center; justify-content:center; z-index:100;}
+  #onboard-modal.show{display:flex;}
+  .modal-box{background:#fff; border-radius:20px; padding:30px 30px 26px; width:340px; text-align:center; box-shadow:0 20px 50px rgba(0,0,0,0.25);}
+  .modal-box .emoji{font-size:40px;}
+  .modal-box h2{margin:8px 0 4px; font-size:20px;}
+  .modal-box p{color:var(--sub); font-size:13.5px; margin:0 0 18px;}
+
+  @media(max-width:760px){
+    #app{flex-direction:column;}
+    #sidebar{width:100%; height:66px; flex-direction:row; align-items:center; order:2; position:fixed; bottom:0; left:0; right:0; padding:8px 6px; border-right:none; border-top:1px solid var(--line); z-index:20;}
+    .brand, .side-student, .side-footer{display:none;}
+    nav{flex-direction:row; width:100%; justify-content:space-between; overflow-x:auto;}
+    .nav-item{flex-direction:column; gap:2px; padding:6px 4px; font-size:9.5px; min-width:52px;}
+    .nav-item .ico{font-size:18px;}
+    #content{order:1; height:calc(100vh - 66px); padding:20px 16px 40px;}
+    .stat-grid{grid-template-columns:1fr 1fr;}
+  }
+</style>
+</head>
+<body>
+
+<div id="onboard-modal">
+  <div class="modal-box">
+    <div class="emoji">🎓</div>
+    <h2>Chào bạn!</h2>
+    <p>Cho gia sư AI biết tên bạn nhé, để bắt đầu hành trình học lớp 8 thật vui!</p>
+    <input type="text" id="onboard-name" placeholder="Nhập tên của bạn..." maxlength="20">
+    <button class="btn btn-block" id="onboard-start" style="background:linear-gradient(135deg,#6C5CE7,#2E86FF); margin-top:14px;">Bắt đầu học 🚀</button>
+  </div>
+</div>
+
+<div id="app">
+  <aside id="sidebar">
+    <div class="brand"><div class="logo">🎓</div> Gia Sư AI</div>
+    <div class="side-student">
+      <div class="hi">Xin chào,</div>
+      <div class="name" id="side-name">Bạn học sinh</div>
+      <div class="streak" id="side-streak">🔥 0 câu đã luyện</div>
+    </div>
+    <nav>
+      <div class="nav-item active" data-view="qna"><span class="ico">📚</span><span class="label">Hỏi bài</span></div>
+      <div class="nav-item" data-view="math"><span class="ico">🧮</span><span class="label">Toán</span></div>
+      <div class="nav-item" data-view="chem"><span class="ico">⚗️</span><span class="label">Hóa học</span></div>
+      <div class="nav-item" data-view="eng"><span class="ico">🇬🇧</span><span class="label">Tiếng Anh</span></div>
+      <div class="nav-item" data-view="quiz"><span class="ico">📝</span><span class="label">Đề kiểm tra</span></div>
+      <div class="nav-item" data-view="practice"><span class="ico">🎯</span><span class="label">Luyện tập</span></div>
+      <div class="nav-item" data-view="progress"><span class="ico">📊</span><span class="label">Tiến độ</span></div>
+    </nav>
+    <div class="side-footer">Gia Sư AI · dành cho học sinh lớp 8</div>
+  </aside>
+
+  <main id="content">
+
+    <!-- HỎI BÀI -->
+    <section class="view active" id="view-qna">
+      <div class="view-head">
+        <h1><span class="badge-ico" style="background:var(--c-qna-bg);">📚</span> Hỏi bài</h1>
+        <p>Nhập bất kỳ câu hỏi nào — AI sẽ giải thích dễ hiểu, đúng trình độ lớp 8.</p>
+      </div>
+      <div class="card">
+        <label class="field-label">Câu hỏi của bạn</label>
+        <textarea id="qna-input" placeholder="Ví dụ: Vì sao khi trời lạnh ta thở ra thấy khói trắng?"></textarea>
+        <div class="action-row">
+          <button class="btn" id="qna-ask" style="background:var(--c-qna);">✨ Hỏi AI</button>
+        </div>
+        <div id="qna-error"></div>
+        <div id="qna-result"></div>
+      </div>
+    </section>
+
+    <!-- TOÁN -->
+    <section class="view" id="view-math">
+      <div class="view-head">
+        <h1><span class="badge-ico" style="background:var(--c-math-bg);">🧮</span> Toán học</h1>
+        <p>Nhập đề bài, AI sẽ giải và trình bày từng bước rõ ràng.</p>
+      </div>
+      <div class="card">
+        <label class="field-label">Đề bài toán</label>
+        <textarea id="math-input" placeholder="Ví dụ: Giải phương trình 2x + 5 = 13"></textarea>
+        <div class="action-row">
+          <button class="btn" id="math-solve" style="background:var(--c-math);">🧮 Giải bài</button>
+        </div>
+        <div id="math-error"></div>
+        <div id="math-result"></div>
+      </div>
+    </section>
+
+    <!-- HÓA -->
+    <section class="view" id="view-chem">
+      <div class="view-head">
+        <h1><span class="badge-ico" style="background:var(--c-chem-bg);">⚗️</span> Hóa học</h1>
+        <p>Cân bằng phương trình hóa học hoặc giải bài tập Hóa lớp 8.</p>
+      </div>
+      <div class="card">
+        <label class="field-label">Phương trình hoặc đề bài</label>
+        <textarea id="chem-input" placeholder="Ví dụ: Fe + O2 -> Fe3O4  hoặc  Tính khối lượng CaCO3 cần dùng để..."></textarea>
+        <div class="action-row">
+          <button class="btn" id="chem-solve" style="background:var(--c-chem);">⚗️ Cân bằng / Giải</button>
+        </div>
+        <div id="chem-error"></div>
+        <div id="chem-result"></div>
+      </div>
+    </section>
+
+    <!-- TIẾNG ANH -->
+    <section class="view" id="view-eng">
+      <div class="view-head">
+        <h1><span class="badge-ico" style="background:var(--c-eng-bg);">🇬🇧</span> Tiếng Anh</h1>
+        <p>Tra từ vựng, học ngữ pháp, hoặc luyện đặt câu.</p>
+      </div>
+      <div class="card">
+        <div class="seg" id="eng-seg">
+          <div class="seg-btn active" data-mode="tuvung">Từ vựng</div>
+          <div class="seg-btn" data-mode="nguphap">Ngữ pháp</div>
+          <div class="seg-btn" data-mode="luyencau">Luyện câu</div>
+        </div>
+        <label class="field-label" id="eng-label">Từ / cụm từ tiếng Anh</label>
+        <textarea id="eng-input" placeholder="Ví dụ: achievement"></textarea>
+        <div class="action-row">
+          <button class="btn" id="eng-ask" style="background:var(--c-eng);">🇬🇧 Hỏi AI</button>
+        </div>
+        <div id="eng-error"></div>
+        <div id="eng-result"></div>
+      </div>
+    </section>
+
+    <!-- ĐỀ KIỂM TRA -->
+    <section class="view" id="view-quiz">
+      <div class="view-head">
+        <h1><span class="badge-ico" style="background:var(--c-quiz-bg);">📝</span> Tạo đề kiểm tra</h1>
+        <p>Tạo đề trắc nghiệm theo môn và lớp, làm thử ngay trong app.</p>
+      </div>
+      <div class="card">
+        <div class="row">
+          <div>
+            <label class="field-label">Môn học</label>
+            <select id="quiz-subject"><option value="toan">Toán</option><option value="hoa">Hóa học</option><option value="tienganh">Tiếng Anh</option></select>
+          </div>
+          <div>
+            <label class="field-label">Lớp</label>
+            <select id="quiz-grade"><option>6</option><option>7</option><option selected>8</option><option>9</option></select>
+          </div>
+          <div>
+            <label class="field-label">Số câu</label>
+            <select id="quiz-count"><option>3</option><option selected>5</option><option>8</option></select>
+          </div>
+          <div>
+            <label class="field-label">Độ khó</label>
+            <select id="quiz-diff"><option value="dễ">Dễ</option><option value="trung bình" selected>Trung bình</option><option value="khó">Khó</option></select>
+          </div>
+        </div>
+        <div class="action-row">
+          <button class="btn" id="quiz-gen" style="background:var(--c-quiz);">📝 Tạo đề</button>
+        </div>
+        <div id="quiz-error"></div>
+      </div>
+      <div id="quiz-form"></div>
+    </section>
+
+    <!-- LUYỆN TẬP -->
+    <section class="view" id="view-practice">
+      <div class="view-head">
+        <h1><span class="badge-ico" style="background:var(--c-practice-bg);">🎯</span> Chế độ luyện tập</h1>
+        <p>AI ra câu hỏi, bạn trả lời, AI chấm điểm ngay lập tức.</p>
+      </div>
+      <div class="card">
+        <div class="row">
+          <div>
+            <label class="field-label">Môn học</label>
+            <select id="prac-subject"><option value="toan">Toán</option><option value="hoa">Hóa học</option><option value="tienganh">Tiếng Anh</option></select>
+          </div>
+          <div>
+            <label class="field-label">Lớp</label>
+            <select id="prac-grade"><option>6</option><option>7</option><option selected>8</option><option>9</option></select>
+          </div>
+        </div>
+        <div class="action-row">
+          <button class="btn" id="prac-start" style="background:var(--c-practice);">🎯 Bắt đầu luyện tập</button>
+          <button class="btn btn-ghost" id="prac-stop" style="display:none;">⏹ Dừng</button>
+        </div>
+        <div id="prac-error"></div>
+        <div class="practice-score" id="prac-score-line" style="display:none;"></div>
+      </div>
+      <div id="prac-area"></div>
+    </section>
+
+    <!-- TIẾN ĐỘ -->
+    <section class="view" id="view-progress">
+      <div class="view-head">
+        <h1><span class="badge-ico" style="background:var(--c-progress-bg);">📊</span> Tiến độ học tập</h1>
+        <p>Theo dõi số câu đã luyện và độ chính xác của bạn.</p>
+      </div>
+      <div class="stat-grid">
+        <div class="stat-card"><div class="val" id="stat-total" style="color:var(--c-practice);">0</div><div class="lbl">Câu đã làm</div></div>
+        <div class="stat-card"><div class="val" id="stat-acc" style="color:var(--c-progress);">0%</div><div class="lbl">Tỉ lệ đúng</div></div>
+        <div class="stat-card"><div class="val" id="stat-streak" style="color:var(--c-quiz);">0</div><div class="lbl">Chuỗi đúng hiện tại</div></div>
+      </div>
+      <div class="card">
+        <h3 style="margin-top:0;">Theo môn học</h3>
+        <div id="subj-bars"></div>
+      </div>
+      <div class="card">
+        <h3 style="margin-top:0;">Lịch sử gần đây</h3>
+        <div class="hist-row" id="hist-row"><span style="color:var(--sub); font-size:13px;">Chưa có dữ liệu.</span></div>
+        <div class="action-row">
+          <button class="btn btn-ghost" id="reset-progress">🗑 Xóa toàn bộ tiến độ</button>
+        </div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<script>
+(function(){
+"use strict";
+
+/* ============ HẰNG SỐ / TIỆN ÍCH ============ */
+const SUBJECT_LABEL = {toan:'Toán', hoa:'Hóa học', tienganh:'Tiếng Anh'};
+const SUBJECT_COLOR = {toan:'#2E86FF', hoa:'#12B886', tienganh:'#FF9F43'};
+
+function esc(s){ return String(s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+function mdToHtml(text){
+  if(!text) return '';
+  let t = esc(text).trim();
+  t = t.replace(/\*\*(.+?)\*\*/g,'<b>$1</b>').replace(/\*(.+?)\*/g,'<i>$1</i>');
+  const lines = t.split(/\n+/);
+  let html = ''; let inList = false;
+  for(const line of lines){
+    const bullet = line.match(/^\s*[-•]\s+(.*)/);
+    const numbered = line.match(/^\s*\d+[\.\)]\s+(.*)/);
+    if(bullet || numbered){
+      if(!inList){ html += '<ul>'; inList = true; }
+      html += '<li>' + (bullet ? bullet[1] : numbered[1]) + '</li>';
+    } else {
+      if(inList){ html += '</ul>'; inList = false; }
+      if(line.trim()) html += '<p>' + line + '</p>';
+    }
+  }
+  if(inList) html += '</ul>';
+  return html || '<p>' + t + '</p>';
+}
+
+function safeParseJSON(text){
+  if(!text) return null;
+  let t = text.replace(/```json/gi,'').replace(/```/g,'').trim();
+  try{ return JSON.parse(t); }catch(e){}
+  const objMatch = t.match(/\{[\s\S]*\}/);
+  const arrMatch = t.match(/\[[\s\S]*\]/);
+  const candidate = arrMatch && (!objMatch || arrMatch[0].length > objMatch[0].length) ? arrMatch[0] : (objMatch ? objMatch[0] : null);
+  if(candidate){ try{ return JSON.parse(candidate); }catch(e){} }
+  return null;
+}
+
+function setLoading(btn, loading, labelWhenIdle){
+  if(loading){
+    btn.dataset.label = btn.innerHTML;
+    btn.innerHTML = '<span class="spinner"></span> Đang xử lý...';
+    btn.disabled = true;
+  } else {
+    btn.innerHTML = labelWhenIdle || btn.dataset.label || btn.innerHTML;
+    btn.disabled = false;
+  }
+}
+
+function showErr(container, msg){
+  container.innerHTML = '<div class="error-banner">⚠️ ' + esc(msg) + '</div>';
+}
+function clearErr(container){ container.innerHTML = ''; }
+
+/* ============ GỌI AI (Anthropic API qua artifact) ============ */
+async function callClaude(system, userText){
+  const res = await fetch("https://api.anthropic.com/v1/messages", {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({
+      model: "claude-sonnet-4-6",
+      max_tokens: 1000,
+      system: system,
+      messages: [{role:"user", content: userText}]
+    })
+  });
+  if(!res.ok) throw new Error("Lỗi kết nối AI (mã " + res.status + ")");
+  const data = await res.json();
+  const text = (data.content || []).map(b => b.type === 'text' ? b.text : '').join('\n').trim();
+  if(!text) throw new Error("AI không trả về nội dung, vui lòng thử lại.");
+  return text;
+}
+
+/* ============ LƯU TRỮ TIẾN ĐỘ ============ */
+const state = {
+  studentName: '',
+  progress: { total:0, correct:0, streak:0, bySubject:{ toan:{answered:0,correct:0}, hoa:{answered:0,correct:0}, tienganh:{answered:0,correct:0} }, history: [] }
+};
+
+async function loadState(){
+  try{
+    const nameRes = await window.storage.get('student-name');
+    if(nameRes && nameRes.value) state.studentName = nameRes.value;
+  }catch(e){}
+  try{
+    const pRes = await window.storage.get('progress-data');
+    if(pRes && pRes.value){
+      const parsed = JSON.parse(pRes.value);
+      Object.assign(state.progress, parsed);
+      if(!state.progress.bySubject) state.progress.bySubject = { toan:{answered:0,correct:0}, hoa:{answered:0,correct:0}, tienganh:{answered:0,correct:0} };
+    }
+  }catch(e){}
+}
+async function saveProgress(){
+  try{ await window.storage.set('progress-data', JSON.stringify(state.progress)); }catch(e){}
+}
+async function saveName(name){
+  state.studentName = name;
+  try{ await window.storage.set('student-name', name); }catch(e){}
+}
+
+function recordAnswer(subjectKey, isCorrect){
+  state.progress.total++;
+  if(isCorrect){ state.progress.correct++; state.progress.streak++; } else { state.progress.streak = 0; }
+  if(!state.progress.bySubject[subjectKey]) state.progress.bySubject[subjectKey] = {answered:0,correct:0};
+  state.progress.bySubject[subjectKey].answered++;
+  if(isCorrect) state.progress.bySubject[subjectKey].correct++;
+  state.progress.history.push({subject:subjectKey, correct:isCorrect, t:Date.now()});
+  if(state.progress.history.length > 40) state.progress.history = state.progress.history.slice(-40);
+  saveProgress();
+  renderProgressView();
+  renderSideStreak();
+}
+
+function renderSideStreak(){
+  document.getElementById('side-streak').textContent = '🔥 ' + state.progress.total + ' câu đã luyện';
+}
+
+function renderProgressView(){
+  const p = state.progress;
+  document.getElementById('stat-total').textContent = p.total;
+  document.getElementById('stat-acc').textContent = p.total ? Math.round(p.correct/p.total*100) + '%' : '0%';
+  document.getElementById('stat-streak').textContent = p.streak;
+
+  const barsEl = document.getElementById('subj-bars');
+  barsEl.innerHTML = '';
+  Object.keys(SUBJECT_LABEL).forEach(key=>{
+    const s = p.bySubject[key] || {answered:0,correct:0};
+    const pct = s.answered ? Math.round(s.correct/s.answered*100) : 0;
+    const row = document.createElement('div');
+    row.className = 'subj-bar-row';
+    row.innerHTML = `<div class="top"><span>${SUBJECT_LABEL[key]}</span><span>${s.answered} câu · ${pct}% đúng</span></div>
+      <div class="subj-bar-bg"><div class="subj-bar-fill" style="width:${pct}%; background:${SUBJECT_COLOR[key]};"></div></div>`;
+    barsEl.appendChild(row);
+  });
+
+  const histEl = document.getElementById('hist-row');
+  if(p.history.length){
+    histEl.innerHTML = p.history.slice(-24).map(h => `<span class="hist-dot" title="${SUBJECT_LABEL[h.subject]||h.subject}" style="background:${h.correct ? '#12B886' : '#e74c3c'};"></span>`).join('');
+  } else {
+    histEl.innerHTML = '<span style="color:var(--sub); font-size:13px;">Chưa có dữ liệu.</span>';
+  }
+}
+
+/* ============ ĐIỀU HƯỚNG ============ */
+document.querySelectorAll('.nav-item').forEach(item=>{
+  item.addEventListener('click', ()=>{
+    document.querySelectorAll('.nav-item').forEach(i=>i.classList.remove('active'));
+    document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+    item.classList.add('active');
+    document.getElementById('view-' + item.dataset.view).classList.add('active');
+  });
+});
+
+/* ============ ONBOARDING ============ */
+async function initOnboarding(){
+  if(!state.studentName){
+    document.getElementById('onboard-modal').classList.add('show');
+  } else {
+    document.getElementById('side-name').textContent = state.studentName;
+  }
+}
+document.getElementById('onboard-start').addEventListener('click', async ()=>{
+  const val = document.getElementById('onboard-name').value.trim();
+  const name = val || 'Bạn học sinh';
+  await saveName(name);
+  document.getElementById('side-name').textContent = name;
+  document.getElementById('onboard-modal').classList.remove('show');
+});
+
+/* ============ HỎI BÀI ============ */
+let qnaLast = {question:'', answer:''};
+const qnaBtn = document.getElementById('qna-ask');
+qnaBtn.addEventListener('click', ()=> askQna(false));
+
+async function askQna(reExplain){
+  const input = document.getElementById('qna-input');
+  const question = reExplain ? qnaLast.question : input.value.trim();
+  const errEl = document.getElementById('qna-error');
+  const resEl = document.getElementById('qna-result');
+  if(!question){ showErr(errEl,'Hãy nhập câu hỏi trước đã nhé!'); return; }
+  clearErr(errEl);
+  setLoading(qnaBtn, true);
+  try{
+    const system = "Bạn là gia sư AI thân thiện, kiên nhẫn, dạy học sinh lớp 8 ở Việt Nam mọi môn học. Giải thích rõ ràng, đúng trình độ lớp 8, dùng ví dụ gần gũi, có thể dùng gạch đầu dòng. Nếu là bài tập thì giải chi tiết từng bước. Trả lời ngắn gọn, súc tích, bằng tiếng Việt, không dùng JSON hay markdown code fence.";
+    const userMsg = reExplain
+      ? `Câu hỏi trước đó: "${qnaLast.question}"\nCâu trả lời trước: "${qnaLast.answer}"\nHọc sinh CHƯA HIỂU câu trả lời trên. Hãy giải thích LẠI theo cách khác, đơn giản hơn, dùng ví dụ trực quan gần gũi hơn với học sinh lớp 8. Đừng lặp lại nguyên văn câu trả lời cũ.`
+      : question;
+    const answer = await callClaude(system, userMsg);
+    qnaLast = {question, answer};
+    resEl.innerHTML = `<div class="result-box" style="background:var(--c-qna-bg);">${mdToHtml(answer)}</div>
+      <div class="action-row">
+        <button class="btn btn-ghost" id="qna-reexplain">💡 Chưa hiểu, giải thích lại</button>
+      </div>`;
+    document.getElementById('qna-reexplain').addEventListener('click', ()=> askQna(true));
+  }catch(e){ showErr(errEl, e.message || 'Có lỗi xảy ra, thử lại nhé.'); }
+  setLoading(qnaBtn, false, '✨ Hỏi AI');
+}
+
+/* ============ TOÁN ============ */
+let mathLast = {question:'', steps:[], answer:''};
+const mathBtn = document.getElementById('math-solve');
+mathBtn.addEventListener('click', ()=> solveMath(false));
+
+function renderStepsBlock(steps, finalAnswer, color, bg){
+  const listHtml = steps.map((s,i)=>`<li class="step-item" style="border-left-color:${color};"><span class="num" style="color:${color}; background:${bg};">${i+1}</span><span>${mdToHtml(s).replace(/^<p>|<\/p>$/g,'')}</span></li>`).join('');
+  return `<ul class="step-list">${listHtml}</ul>` + (finalAnswer ? `<div class="final-answer" style="background:${bg}; color:${color};">✅ Kết quả: ${esc(finalAnswer)}</div>` : '');
+}
+
+async function solveMath(reExplain){
+  const input = document.getElementById('math-input');
+  const question = reExplain ? mathLast.question : input.value.trim();
+  const errEl = document.getElementById('math-error');
+  const resEl = document.getElementById('math-result');
+  if(!question){ showErr(errEl,'Hãy nhập đề bài toán trước đã nhé!'); return; }
+  clearErr(errEl);
+  setLoading(mathBtn, true);
+  try{
+    const system = `Bạn là gia sư Toán lớp 8 tại Việt Nam. Giải bài toán học sinh đưa ra, trình bày từng bước ngắn gọn, dễ hiểu. CHỈ trả về JSON hợp lệ, không thêm chữ nào khác, không dùng markdown code fence, đúng định dạng: {"steps": ["Bước 1: ...", "Bước 2: ..."], "answer": "kết quả cuối cùng"}. Tối đa 6 bước, mỗi bước 1-2 câu ngắn gọn.`;
+    const userMsg = reExplain
+      ? `Đề bài: "${mathLast.question}". Học sinh CHƯA HIỂU lời giải trước (các bước: ${JSON.stringify(mathLast.steps)}). Hãy giải thích LẠI theo cách khác, chia nhỏ hơn nữa, dùng số liệu ví dụ minh họa nếu cần. Trả về JSON đúng định dạng như trên.`
+      : question;
+    const raw = await callClaude(system, userMsg);
+    const parsed = safeParseJSON(raw);
+    if(parsed && parsed.steps){
+      mathLast = {question, steps: parsed.steps, answer: parsed.answer || ''};
+      resEl.innerHTML = renderStepsBlock(parsed.steps, parsed.answer, 'var(--c-math)'.trim() ? '#2E86FF' : '#2E86FF', '#eaf3ff') +
+        `<div class="action-row"><button class="btn btn-ghost" id="math-reexplain">💡 Chưa hiểu, giải thích lại</button></div>`;
+      document.getElementById('math-reexplain').addEventListener('click', ()=> solveMath(true));
+    } else {
+      resEl.innerHTML = `<div class="result-box" style="background:#eaf3ff;">${mdToHtml(raw)}</div>`;
+    }
+  }catch(e){ showErr(errEl, e.message || 'Có lỗi xảy ra, thử lại nhé.'); }
+  setLoading(mathBtn, false, '🧮 Giải bài');
+}
+
+/* ============ HÓA ============ */
+let chemLast = {question:'', steps:[], balanced:''};
+const chemBtn = document.getElementById('chem-solve');
+chemBtn.addEventListener('click', ()=> solveChem(false));
+
+async function solveChem(reExplain){
+  const input = document.getElementById('chem-input');
+  const question = reExplain ? chemLast.question : input.value.trim();
+  const errEl = document.getElementById('chem-error');
+  const resEl = document.getElementById('chem-result');
+  if(!question){ showErr(errEl,'Hãy nhập phương trình hoặc đề bài hóa học trước nhé!'); return; }
+  clearErr(errEl);
+  setLoading(chemBtn, true);
+  try{
+    const system = `Bạn là gia sư Hóa học lớp 8 tại Việt Nam. Nếu học sinh đưa phương trình hóa học chưa cân bằng, hãy cân bằng nó. Nếu là bài tập tính toán, hãy giải từng bước. CHỈ trả về JSON hợp lệ, không thêm chữ khác, không markdown code fence, định dạng: {"balanced": "phương trình đã cân bằng (để trống nếu không áp dụng)", "steps": ["Bước 1: ...", "Bước 2: ..."], "note": "ghi chú/kết luận ngắn gọn"}. Tối đa 6 bước.`;
+    const userMsg = reExplain
+      ? `Đề bài: "${chemLast.question}". Học sinh CHƯA HIỂU lời giải trước (các bước: ${JSON.stringify(chemLast.steps)}). Hãy giải thích LẠI đơn giản, chia nhỏ hơn. Trả về đúng JSON như định dạng trên.`
+      : question;
+    const raw = await callClaude(system, userMsg);
+    const parsed = safeParseJSON(raw);
+    if(parsed && (parsed.steps || parsed.balanced)){
+      chemLast = {question, steps: parsed.steps||[], balanced: parsed.balanced||''};
+      let html = '';
+      if(parsed.balanced){
+        html += `<div class="final-answer" style="background:#e6faf4; color:#12B886; margin-bottom:14px;">⚗️ ${esc(parsed.balanced)}</div>`;
+      }
+      if(parsed.steps && parsed.steps.length){
+        html += renderStepsBlock(parsed.steps, null, '#12B886', '#e6faf4');
+      }
+      if(parsed.note){
+        html += `<div class="result-box" style="background:#e6faf4; margin-top:10px;">${mdToHtml(parsed.note)}</div>`;
+      }
+      html += `<div class="action-row"><button class="btn btn-ghost" id="chem-reexplain">💡 Chưa hiểu, giải thích lại</button></div>`;
+      resEl.innerHTML = html;
+      document.getElementById('chem-reexplain').addEventListener('click', ()=> solveChem(true));
+    } else {
+      resEl.innerHTML = `<div class="result-box" style="background:#e6faf4;">${mdToHtml(raw)}</div>`;
+    }
+  }catch(e){ showErr(errEl, e.message || 'Có lỗi xảy ra, thử lại nhé.'); }
+  setLoading(chemBtn, false, '⚗️ Cân bằng / Giải');
+}
+
+/* ============ TIẾNG ANH ============ */
+let engMode = 'tuvung';
+document.querySelectorAll('#eng-seg .seg-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('#eng-seg .seg-btn').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    engMode = btn.dataset.mode;
+    const input = document.getElementById('eng-input');
+    const label = document.getElementById('eng-label');
+    document.getElementById('eng-result').innerHTML = '';
+    if(engMode === 'tuvung'){ label.textContent = 'Từ / cụm từ tiếng Anh'; input.placeholder = 'Ví dụ: achievement'; }
+    else if(engMode === 'nguphap'){ label.textContent = 'Chủ điểm ngữ pháp'; input.placeholder = 'Ví dụ: Thì hiện tại hoàn thành'; }
+    else { label.textContent = 'Câu tiếng Việt cần dịch sang tiếng Anh'; input.placeholder = 'Ví dụ: Tôi đã học tiếng Anh được ba năm rồi.'; }
+  });
+});
+
+const engBtn = document.getElementById('eng-ask');
+engBtn.addEventListener('click', solveEng);
+
+async function solveEng(){
+  const input = document.getElementById('eng-input');
+  const text = input.value.trim();
+  const errEl = document.getElementById('eng-error');
+  const resEl = document.getElementById('eng-result');
+  if(!text){ showErr(errEl,'Hãy nhập nội dung trước đã nhé!'); return; }
+  clearErr(errEl);
+  setLoading(engBtn, true);
+  try{
+    let system, userMsg, renderer;
+    if(engMode === 'tuvung'){
+      system = `Bạn là gia sư tiếng Anh lớp 8. CHỈ trả về JSON, không thêm chữ khác, không markdown code fence: {"word":"...", "phonetic":"...", "wordType":"...", "meaning":"nghĩa tiếng Việt", "examples":["câu ví dụ tiếng Anh 1","câu ví dụ 2"], "synonyms":["..."]}`;
+      userMsg = text;
+      renderer = (p)=> `<div class="result-box" style="background:var(--c-eng-bg);">
+        <p><b>${esc(p.word||text)}</b> ${p.phonetic?('/'+esc(p.phonetic)+'/'):''} <i>(${esc(p.wordType||'')})</i></p>
+        <p>📌 Nghĩa: ${esc(p.meaning||'')}</p>
+        ${p.examples&&p.examples.length?('<p>✏️ Ví dụ:</p><ul>'+p.examples.map(e=>'<li>'+esc(e)+'</li>').join('')+'</ul>'):''}
+        ${p.synonyms&&p.synonyms.length?('<p>🔁 Từ đồng nghĩa: '+esc(p.synonyms.join(', '))+'</p>'):''}
+      </div>`;
+    } else if(engMode === 'nguphap'){
+      system = `Bạn là gia sư tiếng Anh lớp 8. CHỈ trả về JSON, không thêm chữ khác, không markdown code fence: {"topic":"...", "explanation":"giải thích ngắn gọn bằng tiếng Việt", "structure":"công thức cấu trúc", "examples":["ví dụ 1","ví dụ 2"]}`;
+      userMsg = text;
+      renderer = (p)=> `<div class="result-box" style="background:var(--c-eng-bg);">
+        <p><b>${esc(p.topic||text)}</b></p>
+        <p>${mdToHtml(p.explanation||'').replace(/^<p>|<\/p>$/g,'')}</p>
+        ${p.structure?('<p>🧩 Cấu trúc: <b>'+esc(p.structure)+'</b></p>'):''}
+        ${p.examples&&p.examples.length?('<p>✏️ Ví dụ:</p><ul>'+p.examples.map(e=>'<li>'+esc(e)+'</li>').join('')+'</ul>'):''}
+      </div>`;
+    } else {
+      system = `Bạn là gia sư tiếng Anh lớp 8, giúp học sinh luyện dịch câu Việt sang Anh. CHỈ trả về JSON, không thêm chữ khác, không markdown code fence: {"suggestion":"bản dịch tiếng Anh gợi ý phù hợp trình độ lớp 8", "explanation":"giải thích ngắn gọn về cấu trúc/từ vựng dùng trong câu, bằng tiếng Việt"}`;
+      userMsg = text;
+      renderer = (p)=> `<div class="result-box" style="background:var(--c-eng-bg);">
+        <p>✅ Gợi ý dịch: <b>${esc(p.suggestion||'')}</b></p>
+        <p>${mdToHtml(p.explanation||'').replace(/^<p>|<\/p>$/g,'')}</p>
+      </div>`;
+    }
+    const raw = await callClaude(system, userMsg);
+    const parsed = safeParseJSON(raw);
+    resEl.innerHTML = parsed ? renderer(parsed) : `<div class="result-box" style="background:var(--c-eng-bg);">${mdToHtml(raw)}</div>`;
+  }catch(e){ showErr(errEl, e.message || 'Có lỗi xảy ra, thử lại nhé.'); }
+  setLoading(engBtn, false, '🇬🇧 Hỏi AI');
+}
+
+/* ============ TẠO ĐỀ KIỂM TRA ============ */
+const quizBtn = document.getElementById('quiz-gen');
+let quizData = [];
+quizBtn.addEventListener('click', generateQuiz);
+
+async function generateQuiz(){
+  const subject = document.getElementById('quiz-subject').value;
+  const grade = document.getElementById('quiz-grade').value;
+  const count = document.getElementById('quiz-count').value;
+  const diff = document.getElementById('quiz-diff').value;
+  const errEl = document.getElementById('quiz-error');
+  const formEl = document.getElementById('quiz-form');
+  clearErr(errEl); formEl.innerHTML = '';
+  setLoading(quizBtn, true);
+  try{
+    const system = `Bạn là giáo viên soạn đề kiểm tra trắc nghiệm môn ${SUBJECT_LABEL[subject]} cho học sinh lớp ${grade} tại Việt Nam, độ khó ${diff}. CHỈ trả về JSON hợp lệ là một mảng, không thêm chữ khác, không markdown code fence, đúng định dạng: [{"question":"...", "options":["A. ...","B. ...","C. ...","D. ..."], "answer":"A", "explanation":"giải thích ngắn gọn 1 câu"}]. Tạo đúng ${count} câu, câu hỏi và giải thích ngắn gọn.`;
+    const raw = await callClaude(system, `Tạo ${count} câu hỏi trắc nghiệm môn ${SUBJECT_LABEL[subject]} lớp ${grade}, độ khó ${diff}.`);
+    const parsed = safeParseJSON(raw);
+    if(!parsed || !Array.isArray(parsed) || !parsed.length) throw new Error('AI trả về sai định dạng, thử tạo lại nhé.');
+    quizData = parsed;
+    renderQuizForm(subject, grade, diff);
+  }catch(e){ showErr(errEl, e.message || 'Có lỗi xảy ra, thử lại nhé.'); }
+  setLoading(quizBtn, false, '📝 Tạo đề');
+}
+
+function renderQuizForm(subject, grade, diff){
+  const formEl = document.getElementById('quiz-form');
+  let html = `<div class="card"><h3 style="margin-top:0;">Đề kiểm tra ${esc(SUBJECT_LABEL[subject])} · Lớp ${esc(grade)} · ${esc(diff)}</h3>`;
+  quizData.forEach((q,qi)=>{
+    html += `<div class="q-card" data-qi="${qi}"><div class="q-title">Câu ${qi+1}: ${esc(q.question)}</div>`;
+    (q.options||[]).forEach((opt,oi)=>{
+      html += `<label class="opt"><input type="radio" name="quiz-q${qi}" value="${esc((opt.trim()[0]||''))}"> ${esc(opt)}</label>`;
+    });
+    html += `<div class="q-explain" id="quiz-explain-${qi}"></div></div>`;
+  });
+  html += `<div class="action-row"><button class="btn" id="quiz-submit" style="background:var(--c-quiz);">✅ Nộp bài</button></div>
+    <div id="quiz-score-banner"></div></div>`;
+  formEl.innerHTML = html;
+  document.getElementById('quiz-submit').addEventListener('click', gradeQuiz);
+}
+
+function gradeQuiz(){
+  let correctCount = 0;
+  quizData.forEach((q,qi)=>{
+    const selected = document.querySelector(`input[name="quiz-q${qi}"]:checked`);
+    const card = document.querySelector(`.q-card[data-qi="${qi}"]`);
+    const opts = card.querySelectorAll('.opt');
+    const correctLetter = (q.answer||'').trim()[0];
+    const isCorrect = selected && selected.value === correctLetter;
+    if(isCorrect) correctCount++;
+    opts.forEach(optEl=>{
+      const input = optEl.querySelector('input');
+      if(input.value === correctLetter) optEl.classList.add('correct');
+      else if(selected && input.value === selected.value) optEl.classList.add('wrong');
+      input.disabled = true;
+    });
+    const explainEl = document.getElementById('quiz-explain-'+qi);
+    explainEl.style.display = 'block';
+    explainEl.textContent = '💡 ' + (q.explanation || '');
+    recordAnswer(document.getElementById('quiz-subject').value, isCorrect);
+  });
+  const banner = document.getElementById('quiz-score-banner');
+  const pct = Math.round(correctCount/quizData.length*100);
+  banner.innerHTML = `<div class="final-answer" style="background:#ffeaf0; color:#FF5C8A; margin-top:14px;">🏆 Bạn đúng ${correctCount}/${quizData.length} câu (${pct}%)</div>`;
+  document.getElementById('quiz-submit').disabled = true;
+}
+
+/* ============ LUYỆN TẬP ============ */
+let practiceState = {active:false, subject:'toan', grade:'8', question:null, sessionTotal:0, sessionCorrect:0};
+document.getElementById('prac-start').addEventListener('click', startPractice);
+document.getElementById('prac-stop').addEventListener('click', stopPractice);
+
+async function startPractice(){
+  practiceState.subject = document.getElementById('prac-subject').value;
+  practiceState.grade = document.getElementById('prac-grade').value;
+  practiceState.active = true;
+  practiceState.sessionTotal = 0; practiceState.sessionCorrect = 0;
+  document.getElementById('prac-start').style.display = 'none';
+  document.getElementById('prac-stop').style.display = 'inline-flex';
+  document.getElementById('prac-score-line').style.display = 'block';
+  updatePracScoreLine();
+  await nextPracticeQuestion();
+}
+function stopPractice(){
+  practiceState.active = false;
+  document.getElementById('prac-start').style.display = 'inline-flex';
+  document.getElementById('prac-stop').style.display = 'none';
+  document.getElementById('prac-score-line').style.display = 'none';
+  document.getElementById('prac-area').innerHTML = '';
+}
+function updatePracScoreLine(){
+  document.getElementById('prac-score-line').textContent = `Điểm phiên luyện tập: ${practiceState.sessionCorrect}/${practiceState.sessionTotal} câu đúng`;
+}
+
+async function nextPracticeQuestion(){
+  const errEl = document.getElementById('prac-error');
+  const area = document.getElementById('prac-area');
+  clearErr(errEl);
+  area.innerHTML = `<div class="card"><span class="spinner" style="border-top-color:var(--c-practice); border-color:#d5eef2;"></span> Đang tạo câu hỏi...</div>`;
+  try{
+    const subj = SUBJECT_LABEL[practiceState.subject];
+    const system = `Bạn là gia sư môn ${subj} cho học sinh lớp ${practiceState.grade} tại Việt Nam. Ra MỘT câu hỏi luyện tập vừa sức. CHỈ trả về JSON, không thêm chữ khác, không markdown code fence: {"type":"multiple_choice hoặc short_answer", "question":"...", "options":["A. ...","B. ...","C. ...","D. ..."] (chỉ có nếu type là multiple_choice), "answer":"đáp án đúng (chữ cái nếu trắc nghiệm, hoặc đáp án ngắn gọn nếu tự luận)", "explanation":"giải thích ngắn gọn"}`;
+    const raw = await callClaude(system, `Ra 1 câu hỏi luyện tập môn ${subj} lớp ${practiceState.grade}.`);
+    const parsed = safeParseJSON(raw);
+    if(!parsed || !parsed.question) throw new Error('AI trả về sai định dạng, thử lại nhé.');
+    practiceState.question = parsed;
+    renderPracticeQuestion(parsed);
+  }catch(e){ showErr(errEl, e.message || 'Có lỗi xảy ra, thử lại nhé.'); area.innerHTML=''; }
+}
+
+function renderPracticeQuestion(q){
+  const area = document.getElementById('prac-area');
+  let html = `<div class="card"><div class="q-title" style="font-size:15.5px;">${esc(q.question)}</div>`;
+  if(q.type === 'multiple_choice' && q.options && q.options.length){
+    q.options.forEach(opt=>{
+      html += `<label class="opt"><input type="radio" name="prac-opt" value="${esc(opt.trim()[0]||'')}"> ${esc(opt)}</label>`;
+    });
+  } else {
+    html += `<input type="text" id="prac-answer-input" placeholder="Nhập câu trả lời của bạn...">`;
+  }
+  html += `<div class="action-row"><button class="btn" id="prac-submit" style="background:var(--c-practice);">✅ Nộp câu trả lời</button></div>
+    <div id="prac-feedback"></div></div>`;
+  area.innerHTML = html;
+  document.getElementById('prac-submit').addEventListener('click', submitPracticeAnswer);
+}
+
+async function submitPracticeAnswer(){
+  const q = practiceState.question;
+  const submitBtn = document.getElementById('prac-submit');
+  const fbEl = document.getElementById('prac-feedback');
+  let studentAnswer = '';
+  let isCorrect = false;
+
+  if(q.type === 'multiple_choice'){
+    const sel = document.querySelector('input[name="prac-opt"]:checked');
+    if(!sel){ fbEl.innerHTML = '<div class="error-banner">⚠️ Hãy chọn một đáp án nhé!</div>'; return; }
+    studentAnswer = sel.value;
+    isCorrect = studentAnswer === (q.answer||'').trim()[0];
+    finishPracticeGrading(isCorrect, q.explanation||'');
+  } else {
+    const inputEl = document.getElementById('prac-answer-input');
+    studentAnswer = inputEl.value.trim();
+    if(!studentAnswer){ fbEl.innerHTML = '<div class="error-banner">⚠️ Hãy nhập câu trả lời nhé!</div>'; return; }
+    setLoading(submitBtn, true);
+    try{
+      const system = `Bạn là giáo viên chấm bài cho học sinh lớp ${practiceState.grade}. So sánh câu trả lời của học sinh với đáp án đúng, xem có đúng về bản chất không (không cần khớp từng chữ). CHỈ trả về JSON, không thêm chữ khác, không markdown code fence: {"correct": true hoặc false, "feedback": "nhận xét ngắn gọn, khích lệ, bằng tiếng Việt"}`;
+      const userMsg = `Câu hỏi: ${q.question}\nĐáp án đúng: ${q.answer}\nCâu trả lời của học sinh: ${studentAnswer}`;
+      const raw = await callClaude(system, userMsg);
+      const parsed = safeParseJSON(raw);
+      isCorrect = parsed ? !!parsed.correct : false;
+      finishPracticeGrading(isCorrect, parsed ? parsed.feedback : (q.explanation||''));
+    }catch(e){ fbEl.innerHTML = '<div class="error-banner">⚠️ ' + esc(e.message||'Có lỗi khi chấm bài.') + '</div>'; setLoading(submitBtn,false,'✅ Nộp câu trả lời'); return; }
+    setLoading(submitBtn, false, '✅ Nộp câu trả lời');
+  }
+}
+
+function finishPracticeGrading(isCorrect, feedback){
+  const fbEl = document.getElementById('prac-feedback');
+  fbEl.innerHTML = `<div class="practice-feedback" style="background:${isCorrect?'#e6faf4':'#fff0f0'}; color:${isCorrect?'#12B886':'#e74c3c'};">
+    ${isCorrect ? '✅ Chính xác!' : '❌ Chưa đúng.'} ${esc(feedback||'')}
+  </div>
+  <div class="action-row"><button class="btn" id="prac-next" style="background:var(--c-practice);">➡️ Câu tiếp theo</button></div>`;
+  document.getElementById('prac-submit').disabled = true;
+  practiceState.sessionTotal++;
+  if(isCorrect) practiceState.sessionCorrect++;
+  updatePracScoreLine();
+  recordAnswer(practiceState.subject, isCorrect);
+  document.getElementById('prac-next').addEventListener('click', nextPracticeQuestion);
+}
+
+/* ============ TIẾN ĐỘ: RESET ============ */
+document.getElementById('reset-progress').addEventListener('click', async ()=>{
+  if(!confirm('Bạn có chắc muốn xóa toàn bộ tiến độ học tập không?')) return;
+  state.progress = { total:0, correct:0, streak:0, bySubject:{ toan:{answered:0,correct:0}, hoa:{answered:0,correct:0}, tienganh:{answered:0,correct:0} }, history: [] };
+  await saveProgress();
+  renderProgressView();
+  renderSideStreak();
+});
+
+/* ============ KHỞI ĐỘNG ============ */
+(async function init(){
+  await loadState();
+  initOnboarding();
+  renderSideStreak();
+  renderProgressView();
+})();
+
+})();
+</script>
+</body>
+</html>
